@@ -5,6 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
   
 }
 
@@ -22,4 +23,5 @@ model Task {
   status      String   @default("IDLE")
   createdAt   DateTime @default(now())
   deadline    DateTime
+  isCompleted Boolean  @default(false)
 }
