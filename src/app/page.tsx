@@ -1,10 +1,19 @@
-import { Task } from "@prisma/client";
+// import { Task } from "@prisma/client";
 // import { PrismaClient } from "@prisma/client";
 import TaskCard from "../component/ui/TaskCard";
-import { deleteTask, toggleTask } from "../lib/actions";
-import { prisma } from "../lib/db";
+import { deleteTask, toggleTask, getTasks } from "../lib/actions";
+import AddTaskForm from "../component/ui/addTaskForm";
+// import { prisma } from "../lib/db";
 
 // const prisma = new PrismaClient({});
+
+interface Task {
+  id: string;
+  title: string;
+  createdAt: Date;
+  deadline: Date;
+  isCompleted: boolean;
+}
 
 // const tasks = [
 //   {
@@ -22,10 +31,9 @@ import { prisma } from "../lib/db";
 // ];
 
 export default async function Dasboard() {
-  const tasks = await prisma.task.findMany({
-    where: { isCompleted: false },
-    orderBy: { createdAt: "desc" },
-  });
+  const tasks = (await getTasks()) as Task[];
+  const activeTasks = tasks.filter((task) => !task.isCompleted);
+  const completedTasks = tasks.filter((task) => task.isCompleted);
 
   // const [tasks, setTasks] = useState([
   //   {
@@ -73,14 +81,13 @@ export default async function Dasboard() {
   //   }
   // };
 
-  const activeTasks = tasks.filter((task: Task) => !task.isCompleted);
-  const completedTasks = tasks.filter((task: Task) => task.isCompleted);
-
   return (
     <main className="min-h-screen bg-zinc-950 text-white p-10 font-poppins">
       <h1 className="text-3xl font-bold mb-8 text-red-500 underline">
         Anti Procrastination Sistem
       </h1>
+
+      <AddTaskForm />
 
       {/* <div className="grid gap-8 max-w-4xl">
         {activeTasks.length === 0 && (
@@ -129,19 +136,8 @@ export default async function Dasboard() {
           </p>
         )}
 
-        {activeTasks.map((task: Task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onComplete={async (id) => {
-              "use server";
-              await toggleTask(id, task.isCompleted);
-            }}
-            onDelete={async (id) => {
-              "use server";
-              await deleteTask(id);
-            }}
-          />
+        {activeTasks.map((task) => (
+          <TaskCard key={task.id} task={task} />
         ))}
       </div>
 
@@ -156,17 +152,19 @@ export default async function Dasboard() {
                 key={task.id}
                 className="flex justify-between items-center border border-zinc-800 p-4 bg-zinc-900"
               >
-                <span className="line-through text-zinc-600 font-bold uppercase">
-                  {task.title}
-                </span>
-                <button
-                  className="text-[10px] text-zinc-500 border border-zinc-800 px-2 py-1 hover:text-white"
-                  onClick={async () => {
-                    "use client";
+                <form
+                  action={async () => {
+                    "use server";
+                    await toggleTask(task.id, false);
                   }}
                 >
-                  RECOVER
-                </button>
+                  <button
+                    type="submit"
+                    className="text-[10px] text-zinc-500 border border-zinc-800 px-2 py-1 hover:text-white"
+                  >
+                    RECOVER
+                  </button>
+                </form>
               </div>
             ))}
           </div>
